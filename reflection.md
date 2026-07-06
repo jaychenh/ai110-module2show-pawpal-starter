@@ -6,13 +6,36 @@
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
+- My initial UML design centered on a simple pet-care planning system with five main classes: Owner, Pet, CareTask, Scheduler, and DailyPlan. The Owner class would store basic owner information and preferences, the Pet class would hold the pet’s profile and care needs, and the CareTask class would represent tasks such as walks, feeding, or medication with attributes like duration, priority, and type. The Scheduler class would take the available tasks and constraints and decide which tasks should be included in the day’s plan, while the DailyPlan class would store the final schedule and explanation.
 
 **b. Design changes**
 
 - Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
-
+- Yes, the design changed a bit during implementation. I simplified it by keeping the scheduler focused on a single pet and a one-day plan instead of trying to support more complex multi-pet or recurring-task behavior right away. I also decided not to create a separate explanation class, because a simple list of scheduling reasons attached to each task was enough for the first version. This made the implementation easier to build and test while still meeting the project goals.
 ---
+
+**Brainstorm**
+
+- **Owner**
+  - **Attributes:** name, available_time_per_day, preferences
+  - **Methods:** add_preference(), update_available_time(), get_preferences()
+
+- **Pet**
+  - **Attributes:** name, species, age, health_notes, care_needs
+  - **Methods:** update_profile(), add_care_need(), get_care_summary()
+
+- **CareTask**
+  - **Attributes:** title, type, duration_minutes, priority, preferred_time, recurring
+  - **Methods:** update_task(), mark_complete(), get_priority_score()
+
+- **Scheduler**
+  - **Attributes:** tasks, owner_constraints, pet_profile, available_time
+  - **Methods:** sort_tasks(), filter_tasks(), build_daily_plan(), resolve_conflicts()
+
+- **DailyPlan**
+  - **Attributes:** date, scheduled_tasks, total_time_used, explanation_notes
+  - **Methods:** add_task(), remove_task(), generate_explanation(), display_plan()
+```
 
 ## 2. Scheduling Logic and Tradeoffs
 
