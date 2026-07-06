@@ -38,14 +38,3 @@
 **Which approach did you use in your final implementation and why?**
 
 <!-- Your conclusion -->
-
----
-
-## AI Review Prompt
-
-**Attachment:** [pawpal_system.py](pawpal_system.py)
-
-**Prompt to use:**
-
-> Review the backend logic in pawpal_system.py and tell me whether you notice any missing relationships between the classes or any potential logic bottlenecks in the scheduling flow. Please focus on clarity, maintainability, and whether the current design could support future features like recurring tasks or multiple pets.
-

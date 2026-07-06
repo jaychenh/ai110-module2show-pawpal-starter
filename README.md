@@ -81,12 +81,13 @@ Sample test output:
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+Follow this example to see how a user would interact with PawPal+:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Launch the app with `streamlit run app.py` and open the local Streamlit URL.
+2. Enter an owner name, add a pet, and choose its species.
+3. Create one or more care tasks for that pet, such as a walk, feeding, or medication reminder.
+4. Review the pending task list, which is filtered by pet and sorted by time when a time is available.
+5. Click "Generate schedule" to view a daily plan and see any conflict warnings if two tasks overlap.
+6. Complete a recurring task to confirm that a new task is created automatically for the next day or week.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

@@ -88,21 +88,37 @@ if owner.pets:
 
     if st.button("Add task"):
         if task_title.strip() and selected_pet is not None:
-            task = Task(description=task_title.strip(), duration_minutes=int(duration), frequency=priority)
+            task = Task(
+                description=task_title.strip(),
+                duration_minutes=int(duration),
+                frequency=priority,
+                pet_name=selected_pet.name,
+            )
             selected_pet.add_task(task)
             st.session_state.owner = owner
             st.success(f"Added task to {selected_pet.name}.")
         else:
             st.warning("Please enter a task title.")
 
+    scheduler = Scheduler(owner)
     st.write("Current tasks:")
     for pet in owner.pets:
-        if pet.tasks:
-            st.write(f"**{pet.name}**")
-            for task in pet.tasks:
-                st.write(f"- {task.description} ({task.duration_minutes} min) [{task.frequency}]")
+        pet_tasks = scheduler.filter_tasks(pet.tasks, completed=False, pet_name=pet.name)
+        sorted_pet_tasks = scheduler.sort_by_time(pet_tasks)
+        if sorted_pet_tasks:
+            st.success(f"{pet.name} has {len(sorted_pet_tasks)} pending task(s) ready to review.")
+            task_rows = [
+                {
+                    "Task": task.description,
+                    "Time": task.scheduled_time or "Unscheduled",
+                    "Duration": f"{task.duration_minutes} min",
+                    "Priority": task.frequency.capitalize(),
+                }
+                for task in sorted_pet_tasks
+            ]
+            st.table(task_rows)
         else:
-            st.write(f"**{pet.name}** has no tasks yet.")
+            st.warning(f"{pet.name} has no pending tasks yet.")
 else:
     st.info("Add a pet before creating tasks.")
 
@@ -114,10 +130,26 @@ st.caption("Generate a daily plan from the tasks you added.")
 if st.button("Generate schedule"):
     scheduler = Scheduler(owner)
     plan = scheduler.build_daily_plan(limit_minutes=240)
+    sorted_plan = scheduler.sort_by_time(plan)
+    conflict_message = scheduler.detect_conflicts(sorted_plan)
 
-    if plan:
+    if sorted_plan:
         st.write("### Today's Schedule")
-        for idx, task in enumerate(plan, start=1):
-            st.write(f"{idx}. {task.description} ({task.duration_minutes} min) [priority: {task.frequency}]")
+        plan_rows = [
+            {
+                "#": idx,
+                "Task": task.description,
+                "Time": task.scheduled_time or "Unscheduled",
+                "Duration": f"{task.duration_minutes} min",
+                "Priority": task.frequency.capitalize(),
+            }
+            for idx, task in enumerate(sorted_plan, start=1)
+        ]
+        st.table(plan_rows)
+
+        if conflict_message != "No conflicts detected.":
+            st.warning(conflict_message)
+        else:
+            st.success(conflict_message)
     else:
         st.info("No tasks available to schedule yet.")

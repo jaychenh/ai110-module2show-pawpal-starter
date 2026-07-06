@@ -1,0 +1,58 @@
+classDiagram
+    class Task {
+        +description: str
+        +duration_minutes: int
+        +frequency: str
+        +completed: bool
+        +notes: str
+        +scheduled_time: Optional[str]
+        +pet_name: Optional[str]
+        +scheduled_date: Optional[date]
+        +mark_complete()
+        +clone_for_next_occurrence() Task
+        +mark_incomplete()
+        +update_details(...)
+        +to_dict() dict
+    }
+
+    class Pet {
+        +name: str
+        +species: str
+        +age: int
+        +notes: str
+        +tasks: List[Task]
+        +add_task(task)
+        +remove_task(task)
+        +get_tasks(completed) List[Task]
+        +get_pending_tasks() List[Task]
+        +get_completed_tasks() List[Task]
+        +update_profile(...)
+    }
+
+    class Owner {
+        +name: str
+        +pets: List[Pet]
+        +add_pet(pet)
+        +remove_pet(pet)
+        +get_pet(pet_name) Optional[Pet]
+        +get_all_tasks(completed) List[Task]
+        +get_pending_tasks() List[Task]
+        +get_completed_tasks() List[Task]
+    }
+
+    class Scheduler {
+        +owner: Optional[Owner]
+        +set_owner(owner)
+        +collect_tasks(owner) List[Task]
+        +organize_tasks(tasks) List[Task]
+        +sort_by_time(tasks) List[Task]
+        +detect_conflicts(tasks) str
+        +filter_tasks(tasks, completed, pet_name) List[Task]
+        +build_daily_plan(owner, limit_minutes) List[Task]
+        +complete_task(task, pet) Optional[Task]
+    }
+
+    Owner "1" o-- "0..*" Pet : owns
+    Pet "1" o-- "0..*" Task : contains
+    Scheduler --> Owner : operates on
+    Scheduler --> Task : plans and evaluates
