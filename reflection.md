@@ -11,7 +11,7 @@
 **b. Design changes**
 
 - Did your design change during implementation?
-- Yes, the design changed a bit during implementation. I simplified it by keeping the scheduler focused on a single pet and a one-day plan instead of trying to support more complex multi-pet or recurring-task behavior right away. I also decided not to create a separate explanation class, because a simple list of scheduling reasons attached to each task was enough for the first version. This made the implementation easier to build and test while still meeting the project goals.
+- Yes, the design changed a bit during implementation. I simplified it by keeping the scheduler focused on a single pet and a one-day plan rather than trying to support more complex multi-pet or recurring-task behavior right away. I also decided not to create a separate explanation class, because a simple list of scheduling reasons attached to each task was enough for the first version. This made the implementation easier to build and test while still meeting the project goals.
 ---
 
 **Brainstorm**

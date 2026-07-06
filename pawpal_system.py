@@ -5,20 +5,47 @@ from typing import List, Optional
 
 
 @dataclass
-class Owner:
-    name: str
-    available_time_per_day: int = 240
-    preferences: List[str] = field(default_factory=list)
+class Task:
+    description: str
+    duration_minutes: int = 15
+    frequency: str = "daily"
+    completed: bool = False
+    notes: str = ""
 
-    def add_preference(self, preference: str) -> None:
-        if preference and preference not in self.preferences:
-            self.preferences.append(preference)
+    def mark_complete(self) -> None:
+        """Mark the task as completed."""
+        self.completed = True
 
-    def update_available_time(self, minutes: int) -> None:
-        self.available_time_per_day = max(0, minutes)
+    def mark_incomplete(self) -> None:
+        """Mark the task as incomplete."""
+        self.completed = False
 
-    def get_preferences(self) -> List[str]:
-        return list(self.preferences)
+    def update_details(
+        self,
+        description: Optional[str] = None,
+        duration_minutes: Optional[int] = None,
+        frequency: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> None:
+        """Update the task's description, duration, frequency, or notes."""
+        if description is not None:
+            self.description = description
+        if duration_minutes is not None:
+            self.duration_minutes = max(1, duration_minutes)
+        if frequency is not None:
+            self.frequency = frequency
+        if notes is not None:
+            self.notes = notes
+
+    def to_dict(self) -> dict:
+        """Return the task as a dictionary for easy serialization."""
+        return {
+            "description": self.description,
+            "duration_minutes": self.duration_minutes,
+            "frequency": self.frequency,
+            "completed": self.completed,
+            "notes": self.notes,
+        }
 
 
 @dataclass
@@ -26,99 +53,128 @@ class Pet:
     name: str
     species: str
     age: int = 0
-    health_notes: List[str] = field(default_factory=list)
-    care_needs: List[str] = field(default_factory=list)
+    notes: str = ""
+    tasks: List[Task] = field(default_factory=list)
 
-    def update_profile(self, species: Optional[str] = None, age: Optional[int] = None) -> None:
+    def add_task(self, task: Task) -> None:
+        """Add a new task to this pet."""
+        self.tasks.append(task)
+
+    def remove_task(self, task: Task) -> None:
+        """Remove a task from this pet if it exists."""
+        if task in self.tasks:
+            self.tasks.remove(task)
+
+    def get_tasks(self, completed: Optional[bool] = None) -> List[Task]:
+        """Return tasks filtered by completion state if requested."""
+        if completed is None:
+            return list(self.tasks)
+        return [task for task in self.tasks if task.completed is completed]
+
+    def get_pending_tasks(self) -> List[Task]:
+        """Return all incomplete tasks for this pet."""
+        return self.get_tasks(completed=False)
+
+    def get_completed_tasks(self) -> List[Task]:
+        """Return all completed tasks for this pet."""
+        return self.get_tasks(completed=True)
+
+    def update_profile(self, species: Optional[str] = None, age: Optional[int] = None, notes: Optional[str] = None) -> None:
+        """Update the pet's profile details."""
         if species is not None:
             self.species = species
         if age is not None:
             self.age = max(0, age)
-
-    def add_care_need(self, need: str) -> None:
-        if need and need not in self.care_needs:
-            self.care_needs.append(need)
-
-    def get_care_summary(self) -> str:
-        return f"{self.name} ({self.species}, age {self.age})"
+        if notes is not None:
+            self.notes = notes
 
 
 @dataclass
-class CareTask:
-    title: str
-    task_type: str
-    duration_minutes: int
-    priority: str = "medium"
-    preferred_time: Optional[str] = None
-    recurring: bool = False
+class Owner:
+    name: str
+    pets: List[Pet] = field(default_factory=list)
 
-    def update_task(self, duration_minutes: Optional[int] = None, priority: Optional[str] = None) -> None:
-        if duration_minutes is not None:
-            self.duration_minutes = max(1, duration_minutes)
-        if priority is not None:
-            self.priority = priority
+    def add_pet(self, pet: Pet) -> None:
+        """Add a new pet to the owner's collection."""
+        if pet not in self.pets:
+            self.pets.append(pet)
 
-    def mark_complete(self) -> None:
-        self.priority = "completed"
+    def remove_pet(self, pet: Pet) -> None:
+        """Remove a pet from the owner's collection."""
+        if pet in self.pets:
+            self.pets.remove(pet)
 
-    def get_priority_score(self) -> int:
-        priority_map = {"low": 1, "medium": 2, "high": 3, "completed": 0}
-        return priority_map.get(self.priority, 2)
+    def get_pet(self, pet_name: str) -> Optional[Pet]:
+        """Find a pet by name."""
+        for pet in self.pets:
+            if pet.name.lower() == pet_name.lower():
+                return pet
+        return None
 
+    def get_all_tasks(self, completed: Optional[bool] = None) -> List[Task]:
+        """Collect tasks from all pets for the owner."""
+        tasks: List[Task] = []
+        for pet in self.pets:
+            tasks.extend(pet.get_tasks(completed=completed))
+        return tasks
 
-@dataclass
-class DailyPlan:
-    date: str
-    scheduled_tasks: List[CareTask] = field(default_factory=list)
-    total_time_used: int = 0
-    explanation_notes: List[str] = field(default_factory=list)
+    def get_pending_tasks(self) -> List[Task]:
+        """Return all pending tasks across the owner's pets."""
+        return self.get_all_tasks(completed=False)
 
-    def add_task(self, task: CareTask) -> None:
-        self.scheduled_tasks.append(task)
-        self.total_time_used += task.duration_minutes
-
-    def remove_task(self, task: CareTask) -> None:
-        if task in self.scheduled_tasks:
-            self.scheduled_tasks.remove(task)
-            self.total_time_used -= task.duration_minutes
-
-    def generate_explanation(self) -> List[str]:
-        return [f"Scheduled {task.title} because it is a {task.priority} priority task." for task in self.scheduled_tasks]
-
-    def display_plan(self) -> str:
-        if not self.scheduled_tasks:
-            return "No tasks scheduled."
-        lines = [f"Plan for {self.date}:"]
-        for task in self.scheduled_tasks:
-            lines.append(f"- {task.title} ({task.duration_minutes} min)")
-        return "\n".join(lines)
+    def get_completed_tasks(self) -> List[Task]:
+        """Return all completed tasks across the owner's pets."""
+        return self.get_all_tasks(completed=True)
 
 
 class Scheduler:
-    def __init__(self, owner: Owner, pet: Pet, tasks: Optional[List[CareTask]] = None):
+    def __init__(self, owner: Optional[Owner] = None) -> None:
         self.owner = owner
-        self.pet = pet
-        self.tasks = tasks or []
 
-    def sort_tasks(self) -> List[CareTask]:
-        return sorted(self.tasks, key=lambda task: (-task.get_priority_score(), task.duration_minutes))
+    def set_owner(self, owner: Owner) -> None:
+        """Attach an owner to the scheduler."""
+        self.owner = owner
 
-    def filter_tasks(self, available_minutes: Optional[int] = None) -> List[CareTask]:
-        limit = available_minutes if available_minutes is not None else self.owner.available_time_per_day
-        planned: List[CareTask] = []
-        used = 0
-        for task in self.sort_tasks():
-            if used + task.duration_minutes <= limit:
-                planned.append(task)
-                used += task.duration_minutes
-        return planned
+    def collect_tasks(self, owner: Optional[Owner] = None) -> List[Task]:
+        """Gather pending tasks from the provided owner or the current owner."""
+        active_owner = owner or self.owner
+        if active_owner is None:
+            return []
+        return active_owner.get_all_tasks(completed=False)
 
-    def build_daily_plan(self, available_minutes: Optional[int] = None) -> DailyPlan:
-        plan = DailyPlan(date="today")
-        for task in self.filter_tasks(available_minutes):
-            plan.add_task(task)
-        plan.explanation_notes = plan.generate_explanation()
+    def organize_tasks(self, tasks: Optional[List[Task]] = None) -> List[Task]:
+        """Sort tasks by completion state, priority, and duration."""
+        source = tasks if tasks is not None else self.collect_tasks()
+        return sorted(
+            source,
+            key=lambda task: (
+                0 if not task.completed else 1,
+                self._priority_score(task),
+                task.duration_minutes,
+                task.description.lower(),
+            ),
+        )
+
+    def build_daily_plan(self, owner: Optional[Owner] = None, limit_minutes: Optional[int] = None) -> List[Task]:
+        """Build a simple daily plan from the highest-priority pending tasks."""
+        pending_tasks = self.organize_tasks(self.collect_tasks(owner))
+        plan: List[Task] = []
+        used_minutes = 0
+
+        for task in pending_tasks:
+            if limit_minutes is not None and used_minutes + task.duration_minutes > limit_minutes:
+                continue
+            plan.append(task)
+            used_minutes += task.duration_minutes
+
         return plan
 
-    def resolve_conflicts(self, available_minutes: Optional[int] = None) -> DailyPlan:
-        return self.build_daily_plan(available_minutes)
+    def complete_task(self, task: Task) -> None:
+        """Mark a task as completed."""
+        task.mark_complete()
+
+    @staticmethod
+    def _priority_score(task: Task) -> int:
+        priority_map = {"high": 0, "medium": 1, "low": 2}
+        return priority_map.get(task.frequency.lower(), 1)
+
