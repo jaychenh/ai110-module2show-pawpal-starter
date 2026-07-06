@@ -1,4 +1,5 @@
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -62,7 +63,7 @@ def test_filter_tasks_by_completion_status_and_pet_name():
 
 def test_complete_task_creates_next_occurrence_for_daily_task():
     pet = Pet(name="Mochi", species="cat")
-    task = Task(description="Morning feeding", duration_minutes=10, frequency="daily")
+    task = Task(description="Morning feeding", duration_minutes=10, frequency="daily", scheduled_date=date.today())
     pet.add_task(task)
 
     scheduler = Scheduler()
@@ -73,6 +74,7 @@ def test_complete_task_creates_next_occurrence_for_daily_task():
     assert next_task.completed is False
     assert next_task.description == "Morning feeding"
     assert next_task.frequency == "daily"
+    assert next_task.scheduled_date == date.today() + timedelta(days=1)
     assert len(pet.tasks) == 2
 
 

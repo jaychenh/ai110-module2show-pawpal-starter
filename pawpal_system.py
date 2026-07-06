@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from typing import List, Optional
 
 
@@ -13,6 +14,7 @@ class Task:
     notes: str = ""
     scheduled_time: Optional[str] = None
     pet_name: Optional[str] = None
+    scheduled_date: Optional[date] = None
 
     def mark_complete(self) -> None:
         """Mark the task as completed."""
@@ -20,6 +22,12 @@ class Task:
 
     def clone_for_next_occurrence(self) -> "Task":
         """Create a new task instance for the next occurrence of a recurring task."""
+        current_date = self.scheduled_date or date.today()
+        if self.frequency.lower() == "weekly":
+            next_date = current_date + timedelta(days=7)
+        else:
+            next_date = current_date + timedelta(days=1)
+
         return Task(
             description=self.description,
             duration_minutes=self.duration_minutes,
@@ -27,6 +35,7 @@ class Task:
             notes=self.notes,
             scheduled_time=self.scheduled_time,
             pet_name=self.pet_name,
+            scheduled_date=next_date,
         )
 
     def mark_incomplete(self) -> None:
