@@ -47,11 +47,11 @@ pip install -r requirements.txt
 Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+#Daily plan for Jordan:
+#  01:00 — Give medicine (5 min) [priority: high]
+#  02:00 — Morning feeding (10 min) [priority: high]
+#  03:00 — Evening walk (25 min) [priority: high]
+#  04:00 — Clean litter box (15 min) [priority: medium]
 ```
 
 ## 🧪 Testing PawPal+
@@ -72,14 +72,12 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time()` | Orders tasks by scheduled time so the plan is chronological. |
+| Filtering | `Scheduler.filter_tasks()` | Filters tasks by pet name and/or completion status. |
+| Conflict handling | `Scheduler.detect_conflicts()` | Warns when two tasks share the same scheduled time. |
+| Recurring tasks | `Task.clone_for_next_occurrence()` and `Scheduler.complete_task()` | Creates a new task for the next occurrence when a daily or weekly task is completed. |
 
 ## 📸 Demo Walkthrough
 

@@ -11,10 +11,23 @@ class Task:
     frequency: str = "daily"
     completed: bool = False
     notes: str = ""
+    scheduled_time: Optional[str] = None
+    pet_name: Optional[str] = None
 
     def mark_complete(self) -> None:
         """Mark the task as completed."""
         self.completed = True
+
+    def clone_for_next_occurrence(self) -> "Task":
+        """Create a new task instance for the next occurrence of a recurring task."""
+        return Task(
+            description=self.description,
+            duration_minutes=self.duration_minutes,
+            frequency=self.frequency,
+            notes=self.notes,
+            scheduled_time=self.scheduled_time,
+            pet_name=self.pet_name,
+        )
 
     def mark_incomplete(self) -> None:
         """Mark the task as incomplete."""
@@ -45,6 +58,8 @@ class Task:
             "frequency": self.frequency,
             "completed": self.completed,
             "notes": self.notes,
+            "scheduled_time": self.scheduled_time,
+            "pet_name": self.pet_name,
         }
 
 
@@ -155,6 +170,46 @@ class Scheduler:
             ),
         )
 
+    def sort_by_time(self, tasks: List[Task]) -> List[Task]:
+        """Sort tasks by their scheduled time when available."""
+        return sorted(
+            tasks,
+            key=lambda task: (
+                task.scheduled_time or "99:99",
+                task.description.lower(),
+            ),
+        )
+
+    def detect_conflicts(self, tasks: List[Task]) -> str:
+        """Return a lightweight warning when two tasks share the same scheduled time."""
+        seen = {}
+        for task in tasks:
+            time_value = task.scheduled_time or ""
+            if not time_value:
+                continue
+            owner_key = task.pet_name or "unknown"
+            if time_value in seen:
+                return (
+                    f"Warning: conflict detected at {time_value} between {seen[time_value]} and {task.description} "
+                    f"for {owner_key}."
+                )
+            seen[time_value] = task.description
+        return "No conflicts detected."
+
+    def filter_tasks(
+        self,
+        tasks: List[Task],
+        completed: Optional[bool] = None,
+        pet_name: Optional[str] = None,
+    ) -> List[Task]:
+        """Filter tasks by completion state and/or pet name."""
+        filtered = tasks
+        if completed is not None:
+            filtered = [task for task in filtered if task.completed is completed]
+        if pet_name is not None:
+            filtered = [task for task in filtered if (task.pet_name or "").lower() == pet_name.lower()]
+        return filtered
+
     def build_daily_plan(self, owner: Optional[Owner] = None, limit_minutes: Optional[int] = None) -> List[Task]:
         """Build a simple daily plan from the highest-priority pending tasks."""
         pending_tasks = self.organize_tasks(self.collect_tasks(owner))
@@ -169,9 +224,16 @@ class Scheduler:
 
         return plan
 
-    def complete_task(self, task: Task) -> None:
-        """Mark a task as completed."""
+    def complete_task(self, task: Task, pet: Optional[Pet] = None) -> Optional[Task]:
+        """Mark a task as completed and create a follow-up task for recurring frequencies."""
         task.mark_complete()
+        if task.frequency.lower() in {"daily", "weekly"}:
+            next_task = task.clone_for_next_occurrence()
+            next_task.completed = False
+            if pet is not None:
+                pet.add_task(next_task)
+            return next_task
+        return None
 
     @staticmethod
     def _priority_score(task: Task) -> int:

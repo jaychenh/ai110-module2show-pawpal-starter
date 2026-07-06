@@ -42,12 +42,14 @@
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+- My scheduler considers task priority, task duration, scheduled time, and whether a task belongs to a specific pet. I treated priority and time as the most important constraints because they directly affect whether the plan feels helpful and realistic for a busy owner.
 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+- One tradeoff is that it prioritizes simpler, fast-to-compute rules over more advanced scheduling logic. For example, it sorts by priority and time but does not yet model detailed time windows or long-term recurring patterns in a highly sophisticated way.
 - Why is that tradeoff reasonable for this scenario?
+- This tradeoff is reasonable because the app is meant to provide a practical daily plan quickly and clearly, rather than simulate a full scheduling system. In this scenario, a simple, understandable approach is more useful than an overly complex one.
 
 ---
 
